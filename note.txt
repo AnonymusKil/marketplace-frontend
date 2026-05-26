@@ -1,0 +1,3 @@
+/store for seller dashboard
+/create-store for seller to apply
+/admin admin dashboard
