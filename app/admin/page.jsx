@@ -1,4 +1,7 @@
 'use client'
+
+import { ADMIN_ANALYTICS} from "../../src/graphql/mutations/adminDashboard";
+import { useQuery } from "@apollo/client/react";
 import { dummyAdminDashboardData } from "@/assets/assets"
 import Loading from "@/components/Loading"
 import OrdersAreaChart from "@/components/OrdersAreaChart"
@@ -9,7 +12,8 @@ export default function AdminDashboard() {
 
     const currency = process.env.NEXT_PUBLIC_CURRENCY_SYMBOL || '$'
 
-    const [loading, setLoading] = useState(true)
+    const {data, loading} = useQuery(ADMIN_ANALYTICS)
+    const stats = data?.adminAnalytics
     const [dashboardData, setDashboardData] = useState({
         products: 0,
         revenue: 0,
@@ -18,16 +22,19 @@ export default function AdminDashboard() {
         allOrders: [],
     })
 
+
+        //   value: `${currency}${stats.totalEarnings.toLocaleString()}`,
+
+
     const dashboardCardsData = [
-        { title: 'Total Products', value: dashboardData.products, icon: ShoppingBasketIcon },
-        { title: 'Total Revenue', value: currency + dashboardData.revenue, icon: CircleDollarSignIcon },
-        { title: 'Total Orders', value: dashboardData.orders, icon: TagsIcon },
-        { title: 'Total Stores', value: dashboardData.stores, icon: StoreIcon },
+        { title: 'Total Products', value: stats?.totalProducts, icon: ShoppingBasketIcon },
+        { title: 'Total Revenue', value: `${currency}${stats?.totalRevenue.toLocaleString()}`, icon: CircleDollarSignIcon },
+        { title: 'Total Orders', value: stats?.totalOrders, icon: TagsIcon },
+        { title: 'Total Stores', value: stats?.totalStores, icon: StoreIcon },
     ]
 
     const fetchDashboardData = async () => {
         setDashboardData(dummyAdminDashboardData)
-        setLoading(false)
     }
 
     useEffect(() => {

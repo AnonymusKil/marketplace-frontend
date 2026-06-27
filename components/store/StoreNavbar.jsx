@@ -1,8 +1,22 @@
 'use client'
 import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { useEffect, useState } from "react"
+import {useQuery} from "@apollo/client/react"
+import {PublicSellerData} from "@/src/graphql/mutations/store"
+
 
 const StoreNavbar = () => {
+    const router = useRouter()
+    const{data, loading, error} = useQuery(PublicSellerData)
+    const store = data?.sellerProfile || null
+    console.log("Store data:", data);
 
+    
+     if(loading) return <p>Loading...</p>
+     if(error){
+        console.log("Error fetching store data:", error)
+     }
 
     return (
         <div className="flex items-center justify-between px-12 py-3 border-b border-slate-200 transition-all">
@@ -13,7 +27,8 @@ const StoreNavbar = () => {
                 </p>
             </Link>
             <div className="flex items-center gap-3">
-                <p>Hi, Seller</p>
+                <p>Hi, {store?.storeName}</p>
+
             </div>
         </div>
     )
