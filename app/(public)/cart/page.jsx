@@ -139,7 +139,7 @@ export default function Cart() {
       <h1 className="text-2xl sm:text-4xl font-semibold">Your cart is empty</h1>
       <p>Looks like you haven't added anything yet.</p>
       <Link
-        href="/products"
+        href="/shop"
         className="bg-slate-800 text-white px-5 py-2 rounded-lg hover:bg-slate-900 transition"
       >
         Continue Shopping
