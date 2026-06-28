@@ -54,7 +54,7 @@ const ProfilePage = () => {
       });
 
       router.replace("/");
-      window.location.reload
+      window.location.reload();
     } catch (error) {
       toast.error(error.message || "Logout failed", {
         id,
