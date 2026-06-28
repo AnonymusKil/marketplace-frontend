@@ -61,7 +61,15 @@ export const GET_PRODUCT_BY_ID = gql`
     }
   }
 `;
-
+export const GENERATE_PRODUCT_DESCRIPTION_WITH_AI = gql`
+   mutation GenarateProductDescriptionWithAi($name: String!) {
+    generateProductDescription(name: $name) {
+      success
+      description
+      message
+    }
+  }
+`;
 export const GET_MY_SELLER_PRODUCTS = gql`
   query GetMySellerProducts {
     mysellerProducts {

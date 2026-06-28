@@ -109,7 +109,8 @@ export default function CreateStore() {
           publicId: publicId,
         },
       });
-      if (!data?.becomeSeller) {
+      console.log(data);
+      if (!data?.seller) {
         throw new Error("Application submission failed");
       }
       toast.success(

@@ -1,7 +1,10 @@
 "use client";
 
 import { useMutation } from "@apollo/client/react";
-import { CREATE_PRODUCT } from "@/src/graphql/mutations/product";
+import {
+  CREATE_PRODUCT,
+  GENERATE_PRODUCT_DESCRIPTION_WITH_AI,
+} from "@/src/graphql/mutations/product";
 import { assets } from "@/assets/assets";
 import Image from "next/image";
 import { useState } from "react";
@@ -22,6 +25,9 @@ export default function StoreAddProduct() {
   ];
 
   const [createProduct] = useMutation(CREATE_PRODUCT);
+  const [generateDescription, { loading: generating }] = useMutation(
+    GENERATE_PRODUCT_DESCRIPTION_WITH_AI,
+  );
 
   const [images, setImages] = useState({
     1: null,
@@ -40,6 +46,41 @@ export default function StoreAddProduct() {
   });
 
   const [loading, setLoading] = useState(false);
+  const handleGenerateDescription = async () => {
+    if (!productInfo.name) {
+      toast.error("Enter product name first");
+
+      return;
+    }
+
+    try {
+      const { data } = await generateDescription({
+        variables: {
+          name: productInfo.name,
+        },
+      });
+
+      const result = data.generateProductDescription;
+
+      if (result.success) {
+        setProductInfo((prev) => ({
+          ...prev,
+
+          description: result.description,
+        }));
+
+        toast.success("Description generated");
+      } else {
+        toast.error(
+          "AI service unavailable. Please write your description manually.",
+        );
+      }
+    } catch (error) {
+      toast.error(
+        "AI generation failed. Please write your description manually.",
+      );
+    }
+  };
 
   const uploadProductImage = async (file) => {
     const formData = new FormData();
@@ -173,7 +214,7 @@ export default function StoreAddProduct() {
             />
 
             <input
-             disabled={loading}
+              disabled={loading}
               type="file"
               accept="image/*"
               id={`images${key}`}
@@ -200,6 +241,24 @@ export default function StoreAddProduct() {
           className="w-full max-w-sm p-2 px-4 outline-none border border-slate-200 rounded"
           required
         />
+        <button
+          type="button"
+          disabled={generating}
+          onClick={handleGenerateDescription}
+          className="
+      self-start
+      mt-2
+      px-4
+      py-2
+      bg-indigo-600
+      text-white
+      rounded
+      hover:bg-indigo-700
+      disabled:opacity-50
+    "
+        >
+          {generating ? "Generating..." : "Generate Description with AI"}
+        </button>
       </label>
 
       <label className="flex flex-col gap-2 my-6">
