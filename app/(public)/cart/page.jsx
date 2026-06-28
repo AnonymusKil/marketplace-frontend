@@ -135,15 +135,17 @@ export default function Cart() {
       </div>
     </div>
   ) : (
-    <div className="min-h-[80vh] mx-6 flex items-center flex-col justify-center text-slate-400">
+    <div className="min-h-[80vh] mx-6 flex flex-col items-center justify-center gap-4 text-slate-400">
       <h1 className="text-2xl sm:text-4xl font-semibold">Your cart is empty</h1>
+
       <p>Looks like you haven't added anything yet.</p>
+
       <Link
         href="/shop"
         className="bg-slate-800 text-white px-5 py-2 rounded-lg hover:bg-slate-900 transition"
       >
         Continue Shopping
-      </Link>{" "}
+      </Link>
     </div>
   );
 }
