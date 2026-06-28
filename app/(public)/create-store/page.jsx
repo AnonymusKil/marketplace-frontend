@@ -109,14 +109,17 @@ export default function CreateStore() {
           publicId: publicId,
         },
       });
-      console.log(data);
-      if (!data?.seller) {
+      const response = data?.becomeASeller;
+
+      if (!response) {
         throw new Error("Application submission failed");
       }
-      toast.success(
-        "Application submitted successfully. Our team will review your store shortly.",
-        { id: toastId, duration: 5000 },
-      );
+
+      if (response.sellerStatus === "Failed") {
+        throw new Error(response.message);
+      }
+
+      toast.success(response.message, { id: toastId, duration: 5000 });
       router.push("/");
       console.log("Become seller response:", data);
       setName("");
