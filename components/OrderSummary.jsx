@@ -10,7 +10,6 @@ import { useRouter } from "next/navigation";
 
 const OrderSummary = ({ totalPrice, items }) => {
   const [createOrder] = useMutation(CREATE_ORDER);
-  
 
   const [checkOut] = useMutation(INITIALIZE_PAYMENT);
   const paymentMethod = "paystack";
@@ -47,6 +46,7 @@ const OrderSummary = ({ totalPrice, items }) => {
   const [showAddressModal, setShowAddressModal] = useState(false);
   const [couponCodeInput, setCouponCodeInput] = useState("");
   const [coupon, setCoupon] = useState("");
+  const [creatingOrder, setCreatingOrder] = useState(false);
 
   const formatAddress = (addr) => ({
     fullName: addr.name,
@@ -72,6 +72,7 @@ const OrderSummary = ({ totalPrice, items }) => {
       toast.error("Please select an address");
       return;
     }
+    setCreatingOrder(true);
 
     try {
       // STEP 1: create order
@@ -96,11 +97,14 @@ const OrderSummary = ({ totalPrice, items }) => {
       const paymentUrl = await handleCheckOut(orderID);
 
       if (!paymentUrl) return;
+      toast.loading("Redirecting to payment...", { id: "checkout" });
 
       window.location.href = paymentUrl;
     } catch (err) {
       console.error(err);
       toast.error("Order failed");
+    } finally {
+      setCreatingOrder(false);
     }
   };
   return (
@@ -174,6 +178,8 @@ const OrderSummary = ({ totalPrice, items }) => {
           onSubmit={(e) =>
             toast.promise(handleCouponCode(e), {
               loading: "Checking Coupon...",
+              success: "Coupon applied",
+              error: "Invalid coupon",
             })
           }
           className="flex justify-center gap-3 mt-3"
@@ -200,12 +206,17 @@ const OrderSummary = ({ totalPrice, items }) => {
         </p>
       </div>
       <button
+        disabled={creatingOrder}
         onClick={(e) =>
-          toast.promise(handlePlaceOrder(e), { loading: "placing Order..." })
+          toast.promise(handlePlaceOrder(e), {
+            loading: "Placing Order...",
+            success: "Redirecting to payment...",
+            error: "Order failed",
+          })
         }
         className="w-full bg-slate-700 text-white py-2.5 rounded hover:bg-slate-900 active:scale-95 transition-all"
       >
-        Place Order
+        {creatingOrder ? "Please wait..." : "Place Order"}
       </button>
 
       {showAddressModal && (

@@ -11,12 +11,14 @@ function LogInPopUp({ setShowLogin }) {
   const [currentState, setCurrentState] = useState("sign up");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [login] = useMutation(LOGIN);
-  const [signUp] = useMutation(SIGNUP);
+  const [login, { loading: loginloading }] = useMutation(LOGIN);
+  const [signUp, { loading: signuploading }] = useMutation(SIGNUP);
   const [name, setName] = useState("");
+  const isLoading = loginloading || signuploading;
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    toast.loading("Logging in...", { id: "auth" });
     try {
       const { data } = await login({
         variables: {
@@ -26,15 +28,17 @@ function LogInPopUp({ setShowLogin }) {
       });
       console.log("Login successful:", data);
       localStorage.setItem("token", data.login.token);
-      toast.success("Logged in successfully!");
+      toast.success("Logged in successfully!", { id: "auth" });
+      window.location.reload();
       setShowLogin(false);
     } catch (error) {
-      console.error("Login error:", error);
+      toast.error(error?.message || "Login failed", { id: "auth" });
     }
   };
 
   const handleSignUp = async (e) => {
     e.preventDefault();
+    toast.loading("Creating account...", { id: "auth" });
 
     try {
       const { data } = await signUp({
@@ -46,10 +50,11 @@ function LogInPopUp({ setShowLogin }) {
       });
       console.log("Sign-up successful:", data);
       localStorage.setItem("token", data.signUp.token);
-      toast.success("Account created successfully!");
+      toast.success("Account created successfully!", { id: "auth" });
+      window.location.reload();
       setShowLogin(false);
     } catch (error) {
-      console.error("Sign-up error:", error);
+      toast.error( error?.message || "Signup failed", { id: "auth", } );
     }
   };
 
@@ -102,10 +107,11 @@ function LogInPopUp({ setShowLogin }) {
 
         {/* Button */}
         <button
+        disabled={isLoading}
           onClick={currentState === "sign up" ? handleSignUp : handleLogin}
-          className="bg-orange-500 text-white p-2 rounded cursor-pointer text-[15px] hover:bg-orange-600 transition"
+          className="bg-orange-500 text-white p-2 rounded cursor-pointer text-[15px] hover:bg-orange-600 transition disabled:opacity-50"
         >
-          {currentState === "sign up" ? "create account" : "Login"}
+          { isLoading ? "Please wait..." : currentState === "sign up" ? "create Account" : "Login" }
         </button>
 
         {/* Terms */}

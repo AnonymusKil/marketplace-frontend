@@ -6,9 +6,6 @@ import React from "react";
 
 const ProductCard = ({ product }) => {
   const currency = process.env.NEXT_PUBLIC_CURRENCY_SYMBOL || "$";
-
-  
-
   return (
     <Link href={`/product/${product.id}`} className=" group max-xl:mx-auto">
       <div className="bg-[#F5F5F5] h-40  sm:w-60 sm:h-68 rounded-lg flex items-center justify-center">

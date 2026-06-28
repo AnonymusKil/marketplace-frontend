@@ -17,8 +17,11 @@ import { useState } from "react";
 import Image from "next/image";
 import Counter from "./Counter";
 import Loading from "./Loading";
+import toast from "react-hot-toast";
+
 const ProductDetails = ({ product }) => {
-    const [mainImage, setMainImage] = useState(product.images[0]);
+  const [mainImage, setMainImage] = useState(product.images?.[0] || "");
+  const [adding, setAdding] = useState(false);
   const { data, loading } = useQuery(GET_BEST_COUPON);
   const coupon = data?.getBestCoupon;
   const { data: cartData, loading: cartLoading } = useQuery(GET_CART);
@@ -30,6 +33,10 @@ const ProductDetails = ({ product }) => {
   });
   const handleAddOrUpdateCartItem = async ({ productId, quantity }) => {
     try {
+      setAdding(true);
+      toast.loading("Adding...", {
+        id: "cart",
+      });
       const { data } = await addOrUpdateCartItem({
         variables: {
           input: {
@@ -38,10 +45,11 @@ const ProductDetails = ({ product }) => {
           },
         },
       });
-
-      console.log("Add to cart response", data);
+      toast.success("Added to cart", { id: "cart" });
     } catch (error) {
-      console.error("addToCartError:", error);
+      toast.error(error?.message || "Failed to add item", { id: "cart" });
+    } finally {
+      setAdding(false);
     }
   };
   const cartItem = cartItems.find((item) => item.product.id === productId);
@@ -50,17 +58,14 @@ const ProductDetails = ({ product }) => {
       ? (product.price * coupon.discountValue) / 100
       : coupon?.discountValue || 0;
 
-  const finalPrice = product.price - discountAmount;
-
+  const finalPrice = Math.max(product.price - discountAmount, 0);
   const router = useRouter();
-
-  if (loading) return <Loading />;
   if (cartLoading) return <Loading />;
   return (
     <div className="flex max-lg:flex-col gap-12">
       <div className="flex max-sm:flex-col-reverse gap-3">
         <div className="flex sm:flex-col gap-3">
-          {product.images.map((image, index) => (
+          {product.images?.map((image, index) => (
             <div
               key={index}
               onClick={() => setMainImage(product.images[index])}
@@ -104,25 +109,37 @@ const ProductDetails = ({ product }) => {
           </p>
         </div>
         <div className="flex items-start my-6 gap-3 text-2xl font-semibold text-slate-800">
-          <p>
-            {" "}
-            {currency}
-            {product.price}{" "}
-          </p>
-          <p className="text-xl text-slate-500 line-through">
-            {currency}
-            {finalPrice}
-          </p>
+          {coupon ? (
+            <>
+              <p className="line-through">
+                {currency}
+                {product.price}
+              </p>
+
+              <p>
+                {currency}
+                {finalPrice}
+              </p>
+            </>
+          ) : (
+            <p>
+              {currency}
+              {product.price}
+            </p>
+          )}
         </div>
         <div className="flex items-center gap-2 text-slate-500">
           <TagIcon size={14} />
-          <p>
-            Save{" "}
-            {coupon?.discountType === "percentage"
-              ? `${coupon?.discountValue}%`
-              : `${currency}${coupon?.discountValue}`}
-            right now
-          </p>
+
+          {coupon ? (
+            <span className="bg-green-50 text-green-700 px-3 py-2 rounded-lg font-medium">
+              {coupon.discountType === "percentage"
+                ? `${coupon.discountValue}% OFF today`
+                : `${currency}${coupon.discountValue} OFF today`}
+            </span>
+          ) : (
+            <span className="text-slate-400">No active deals</span>
+          )}
         </div>
         <div className="flex items-end gap-5 mt-10">
           {cartItem && (
@@ -135,6 +152,7 @@ const ProductDetails = ({ product }) => {
             </div>
           )}
           <button
+            disabled={adding}
             onClick={() =>
               !cartItem
                 ? handleAddOrUpdateCartItem({ productId, quantity: 1 })
@@ -142,7 +160,7 @@ const ProductDetails = ({ product }) => {
             }
             className="bg-slate-800 text-white px-10 py-3 text-sm font-medium rounded hover:bg-slate-900 active:scale-95 transition"
           >
-            {!cartItem ? "Add to Cart" : "View Cart"}
+            {adding ? "Adding..." : cartItem ? "View Cart" : "Add To Cart"}{" "}
           </button>
         </div>
         <hr className="border-gray-300 my-5" />

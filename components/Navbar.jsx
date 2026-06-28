@@ -16,7 +16,7 @@ const Navbar = ({ setShowLogin }) => {
     setToken(storedToken);
   }, []);
   const { data } = useQuery(ME, {
-    skip: !token, // Skip the query if there's no token
+    skip: !token, 
   });
   const user = data?.me;
 

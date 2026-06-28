@@ -50,7 +50,7 @@ export default function StoreAddProduct() {
       {
         method: "POST",
         body: formData,
-      }
+      },
     );
 
     if (!res.ok) {
@@ -64,51 +64,61 @@ export default function StoreAddProduct() {
     setProductInfo({
       ...productInfo,
       [e.target.name]:
-        e.target.name === "price"
-          ? Number(e.target.value)
-          : e.target.value,
+        e.target.name === "price" ? Number(e.target.value) : e.target.value,
     });
   };
 
   const onSubmitHandler = async (e) => {
     e.preventDefault();
+    const id = toast.loading("Creating product...");
 
     try {
-      setLoading(true);
-
       const selectedImages = Object.values(images).filter(Boolean);
 
       if (selectedImages.length === 0) {
-        toast.error("Please upload at least one image");
+        toast.error("Please upload at least one image", {
+          id,
+        });
+        return;
+      }
+      if (productInfo.price <= 0) {
+        toast.error("Price must be greater than 0", { id });
         return;
       }
 
+      if (!productInfo.category) {
+        toast.error("Please select a category", { id });
+        return;
+      }
+      setLoading(true);
+
       const uploadedImages = await Promise.all(
-        selectedImages.map((file) => uploadProductImage(file))
+        selectedImages.map((file) => uploadProductImage(file)),
       );
 
-      const imageUrls = uploadedImages.flatMap(
-        (img) => img.imageUrls || []
-      );
+      const imageUrls = uploadedImages.flatMap((img) => img.imageUrls || []);
 
-      const publicIds = uploadedImages.flatMap(
-        (img) => img.publicIds || []
-      );
+      const publicIds = uploadedImages.flatMap((img) => img.publicIds || []);
 
       const { data } = await createProduct({
         variables: {
-            input: {
-                name: productInfo.name,
-                description: productInfo.description,
-                price: Number(productInfo.price),
-                category: productInfo.category,
-                images: imageUrls,
-                publicId: publicIds[0] || "",
-              },
-            },
+          input: {
+            name: productInfo.name,
+            description: productInfo.description,
+            price: Number(productInfo.price),
+            category: productInfo.category,
+            images: imageUrls,
+            publicId: publicIds[0] || "",
+          },
+        },
       });
-
-      toast.success(data?.createProduct?.message || "Product created");
+      if (!data?.createProduct) {
+        throw new Error("Failed to create product");
+      }
+      toast.success(
+        data?.createProduct?.message || "Product created successfully",
+        { id },
+      );
 
       setProductInfo({
         name: "",
@@ -127,17 +137,20 @@ export default function StoreAddProduct() {
       });
     } catch (error) {
       console.error(error);
-      toast.error(error.message || "Something went wrong");
+      toast.error(
+        error.message || "Failed to create product",
+
+        {
+          id,
+        },
+      );
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <form
-      onSubmit={onSubmitHandler}
-      className="text-slate-500 mb-28"
-    >
+    <form onSubmit={onSubmitHandler} className="text-slate-500 mb-28">
       <h1 className="text-2xl">
         Add New <span className="text-slate-800 font-medium">Products</span>
       </h1>
@@ -160,6 +173,7 @@ export default function StoreAddProduct() {
             />
 
             <input
+             disabled={loading}
               type="file"
               accept="image/*"
               id={`images${key}`}
@@ -242,7 +256,7 @@ export default function StoreAddProduct() {
         disabled={loading}
         className="bg-slate-800 text-white px-6 mt-7 py-2 hover:bg-slate-900 rounded transition"
       >
-        {loading ? "Adding..." : "Add Product"}
+        {loading ? "Creating Product..." : "Add Product"}{" "}
       </button>
     </form>
   );

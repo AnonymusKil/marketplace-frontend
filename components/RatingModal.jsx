@@ -12,28 +12,35 @@ const RatingModal = ({ ratingModal, setRatingModal }) => {
   const [createRating] = useMutation(CREATE_REVIEW);
   console.log(ratingModal);
 
+  const [submitting, setSubmitting] = useState(false);
+
   const createReview = async () => {
     try {
+      setSubmitting(true);
+
       const { data } = await createRating({
         variables: {
           input: {
             productId: ratingModal?.productId,
-            content: review,
+            content: review.trim(),
             rating,
           },
         },
       });
-      console.log(data);
+
+      return data;
     } catch (error) {
-      console.log(error);
+      throw error;
+    } finally {
+      setSubmitting(false);
     }
   };
-
   const handleSubmit = async () => {
     if (rating < 0 || rating > 5) {
       return toast("Please select a rating");
     }
     if (review.length < 5) {
+      toast.error("Please write a review of at least 5 characters");
       return toast("write a short review");
     }
     await createReview();
@@ -64,12 +71,13 @@ const RatingModal = ({ ratingModal, setRatingModal }) => {
         </div>
         <textarea
           className="w-full p-2 border border-gray-300 rounded-md mb-4 focus:outline-none focus:ring-2 focus:ring-green-400"
-          placeholder="Write your review (optional)"
+          placeholder="Share your experience with this product"
           rows="4"
           value={review}
           onChange={(e) => setReview(e.target.value)}
         ></textarea>
         <button
+          disabled={submitting}
           onClick={() =>
             toast.promise(handleSubmit(), {
               loading: "Submitting...",
@@ -79,7 +87,7 @@ const RatingModal = ({ ratingModal, setRatingModal }) => {
           }
           className="w-full bg-green-500 text-white py-2 rounded-md hover:bg-green-600 transition"
         >
-          Submit Rating
+          {submitting ? "Submitting..." : "Submit Rating"}
         </button>
       </div>
     </div>

@@ -20,6 +20,16 @@ export default function CreateStore() {
   const router = useRouter();
   const { user, authloading, error } = useAuth();
   const [loading, setLoading] = useState(true);
+  const [preview, setPreview] = useState("");
+
+  useEffect(() => {
+    if (!image) return;
+
+    const url = URL.createObjectURL(image);
+    setPreview(url);
+
+    return () => URL.revokeObjectURL(url);
+  }, [image]);
 
   useEffect(() => {
     if (authloading) return;
@@ -39,8 +49,7 @@ export default function CreateStore() {
 
   const uploadImage = async () => {
     if (!image) {
-      throw new Error("Please select an image");
-      return;
+      throw new Error("Please select a store logo");
     }
     const formData = new FormData();
     formData.append("logo", image);
@@ -53,7 +62,6 @@ export default function CreateStore() {
       },
     );
     if (!res.ok) {
-      toast.error("Image upload failed");
       throw new Error("Image upload failed");
     }
     const data = await res.json();
@@ -68,12 +76,28 @@ export default function CreateStore() {
     const toastId = toast.loading("Submitting your application...");
     try {
       setSubmitting(true);
-      const { imageUrl, publicId } = await uploadImage();
       if (!name || !description || !email || !contact || !address) {
-        toast.error("Please fill in all fields", { id: toastId });
-        setSubmitting(false);
+        toast.error("Please fill in all fields", {
+          id: toastId,
+        });
+
         return;
       }
+      if (contact.length < 11) {
+        toast.error("Please enter a valid phone number", { id: toastId });
+        return;
+      }
+
+      if (!image) {
+        toast.error("Please upload a logo", {
+          id: toastId,
+        });
+
+        return;
+      }
+
+      const { imageUrl, publicId } = await uploadImage();
+
       const { data } = await becomeSeller({
         variables: {
           storeName: name,
@@ -85,10 +109,14 @@ export default function CreateStore() {
           publicId: publicId,
         },
       });
+      if (!data?.becomeSeller) {
+        throw new Error("Application submission failed");
+      }
       toast.success(
         "Application submitted successfully. Our team will review your store shortly.",
         { id: toastId, duration: 5000 },
       );
+      router.push("/");
       console.log("Become seller response:", data);
       setName("");
       setDescription("");
@@ -96,6 +124,7 @@ export default function CreateStore() {
       setContact("");
       setAddress("");
       setImage(null);
+      setPreview("");
     } catch (error) {
       toast.error(error.message || "Failed to submit application", {
         id: toastId,
@@ -126,14 +155,25 @@ export default function CreateStore() {
           <label className="mt-10 cursor-pointer">
             Store Logo
             <Image
-              src={image ? URL.createObjectURL(image) : assets.upload_area}
+              src={preview || assets.upload_area}
               className="rounded-lg mt-2 h-16 w-auto"
-              alt=""
+              alt="store Logo"
               width={150}
               height={100}
             />
             <input
-              onChange={(e) => setImage(e.target.files[0])}
+              onChange={(e) => {
+                const file = e.target.files[0];
+
+                if (!file) return;
+
+                if (file.size > 5 * 1024 * 1024) {
+                  toast.error("Logo must be under 5MB");
+                  return;
+                }
+
+                setImage(file);
+              }}
               type="file"
               disabled={submitting}
               accept="image/*"
@@ -195,7 +235,7 @@ export default function CreateStore() {
             disabled={submitting}
             className="bg-slate-800 text-white px-12 py-2 rounded mt-10 mb-40 active:scale-95 hover:bg-slate-900 transition disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {submitting ? "Submitting..." : "Submit"}
+            {submitting ? "Submitting Application..." : "Become Seller"}{" "}
           </button>
         </form>
       </div>

@@ -16,6 +16,7 @@ import {
   UserPlus,
   Loader2,
   XCircle,
+  ShoppingCart,
 } from "lucide-react";
 
 const ProfilePage = () => {
@@ -38,15 +39,24 @@ const ProfilePage = () => {
   const user = data?.me;
 
   const handleLogOut = async () => {
+    const id = toast.loading("Signing out...");
+
     try {
-      const { data } = await logout();
-      console.log("Logout successful:", data);
+      await logout();
 
       localStorage.removeItem("token");
+
       await client.clearStore();
-      router.push("/");
+
+      toast.success("Logged out successfully", {
+        id,
+      });
+
+      router.replace("/");
     } catch (error) {
-      console.error("Logout error:", error);
+      toast.error(error.message || "Logout failed", {
+        id,
+      });
     }
   };
   return (
@@ -133,19 +143,97 @@ const ProfilePage = () => {
               Sign out from your account
             </p>
           </button>
+          <Link
+            href="/cart"
+            className="
+bg-white
+p-6
+rounded-2xl
+shadow-sm
+hover:shadow-md
+transition
+block
+"
+          >
+            <ShoppingCart className="text-orange-500 mb-4" size={28} />
+
+            <h2
+              className="
+font-semibold
+text-slate-800
+text-lg
+"
+            >
+              Cart
+            </h2>
+
+            <p
+              className="
+text-sm
+text-slate-500
+mt-1
+"
+            >
+              Manage items in your cart
+            </p>
+          </Link>
         </div>
 
         {/* Orders */}
         <div className="bg-white rounded-3xl shadow-sm p-8 mt-8">
-          <h2 className="text-2xl font-bold text-slate-800 mb-6">
-            Recent Orders
-            <Link href="/orders" className="text-indigo-600 hover:underline">
-              Click to view your orders
-            </Link>
-          </h2>
+          <div className="flex justify-between items-center">
+            <h2
+              className="
+text-2xl
+font-bold
+text-slate-800
+"
+            >
+              Recent Orders
+            </h2>
 
-          <div className="border border-dashed border-slate-300 rounded-2xl p-10 text-center">
-            <p className="text-slate-500">No orders yet.</p>
+            <Link
+              href="/orders"
+              className="
+text-indigo-600
+hover:text-indigo-800
+"
+            >
+              View All
+            </Link>
+          </div>
+          <div
+            className="
+border
+border-dashed
+border-slate-300
+rounded-2xl
+p-10
+text-center
+"
+          >
+            <p
+              className="
+text-slate-500
+mb-3
+"
+            >
+              No orders yet
+            </p>
+
+            <Link
+              href="/products"
+              className="
+bg-indigo-600
+text-white
+px-4
+py-2
+rounded-lg
+inline-block
+"
+            >
+              Start Shopping
+            </Link>
           </div>
         </div>
       </div>
