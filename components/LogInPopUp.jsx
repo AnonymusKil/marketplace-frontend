@@ -3,6 +3,8 @@ import { useState } from "react";
 import { useMutation } from "@apollo/client/react";
 import { LOGIN } from "../src/graphql/mutations/auth";
 import { SIGNUP } from "../src/graphql/mutations/auth";
+import {socket} from "../lib/socket"
+
 import Image from "next/image";
 import toast from "react-hot-toast";
 import { assets } from "../assets/assets";
@@ -27,6 +29,10 @@ function LogInPopUp({ setShowLogin }) {
         },
       });
       console.log("Login successful:", data);
+      socket.auth = {
+        userId: data.login.user.id,
+      }
+      socket.connect();
       localStorage.setItem("token", data.login.token);
       toast.success("Logged in successfully!", { id: "auth" });
       window.location.reload();

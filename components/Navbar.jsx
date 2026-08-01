@@ -1,8 +1,9 @@
 "use client";
 import { GET_CART } from "../src/graphql/mutations/cart";
 import { useQuery } from "@apollo/client/react";
+import { GET_UNREAD_NOTIFICATIONS_COUNT } from "../src/graphql/mutations/notification";
 import { ME } from "../src/graphql/mutations/auth";
-import { Search, ShoppingCart } from "lucide-react";
+import { Search, ShoppingCart, Bell } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
@@ -16,7 +17,7 @@ const Navbar = ({ setShowLogin }) => {
     setToken(storedToken);
   }, []);
   const { data } = useQuery(ME, {
-    skip: !token, 
+    skip: !token,
   });
   const user = data?.me;
 
@@ -27,7 +28,10 @@ const Navbar = ({ setShowLogin }) => {
   };
   const { data: cartData } = useQuery(GET_CART);
   const cartItems = cartData?.getCart?.items || [];
-  const cartTotal = cartItems.length
+  const cartTotal = cartItems.length;
+  const { data: notificationData } = useQuery(GET_UNREAD_NOTIFICATIONS_COUNT);
+  const unreadNotificationsCount =
+    notificationData?.unReadNotificationsCount || 0;
 
   const [search, setSearch] = useState("");
   const cartCount = useSelector((state) => state.cart.total);
@@ -85,6 +89,18 @@ const Navbar = ({ setShowLogin }) => {
                   {cartTotal}
                 </button>
               </Link>
+              <Link
+                href="/notifications"
+                className="relative flex items-center gap-2 text-slate-600"
+              >
+                <Bell size={18} />
+                Notifications
+                {unreadNotificationsCount > 0 ? (
+                  <span className="absolute -top-1 left-3 flex items-center justify-center min-w-4 h-4 px-1 rounded-full bg-red-600 text-[9px] text-white">
+                    {unreadNotificationsCount}
+                  </span>
+                ) : null}
+              </Link>
               {user ? (
                 <button
                   onClick={goToProfile}
@@ -102,7 +118,7 @@ const Navbar = ({ setShowLogin }) => {
               )}
             </div>
 
-            <div className="sm:hidden">
+            <div className="sm:hidden ">
               {user ? (
                 <button
                   onClick={goToProfile}
@@ -118,6 +134,8 @@ const Navbar = ({ setShowLogin }) => {
                   Login
                 </button>
               )}
+
+              
             </div>
           </div>
         </div>

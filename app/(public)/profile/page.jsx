@@ -1,6 +1,9 @@
 "use client";
 import { ME } from "../../../src/graphql/mutations/auth";
 import { LOGOUT } from "../../../src/graphql/mutations/auth";
+import { GET_UNREAD_NOTIFICATIONS_COUNT } from "../../../src/graphql/mutations/notification";
+
+import { socket } from "../../../lib/socket";
 import { useApolloClient, useMutation, useQuery } from "@apollo/client/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -18,11 +21,16 @@ import {
   Loader2,
   XCircle,
   ShoppingCart,
+  Bell
 } from "lucide-react";
 
 const ProfilePage = () => {
   const [token, setToken] = useState(null);
   const [logout] = useMutation(LOGOUT);
+  const { data: notificationData } = useQuery(GET_UNREAD_NOTIFICATIONS_COUNT);
+  const unreadNotificationsCount =
+    notificationData?.unReadNotificationsCount || 0;
+
 
   useEffect(() => {
     const storedToken = localStorage.getItem("token");
@@ -44,6 +52,7 @@ const ProfilePage = () => {
 
     try {
       await logout();
+      socket.disconnect();
 
       localStorage.removeItem("token");
 
@@ -236,6 +245,65 @@ inline-block
               Start Shopping
             </Link>
           </div>
+
+           <Link
+              href="/notifications"
+              className="
+bg-white
+p-6
+rounded-2xl
+shadow-sm
+hover:shadow-md
+transition
+block
+relative
+"
+            >
+              <Bell className="text-blue-500 mb-4" size={28} />
+
+              <h2
+                className="
+font-semibold
+text-slate-800
+text-lg
+"
+              >
+                Notifications
+              </h2>
+
+              <p
+                className="
+text-sm
+text-slate-500
+mt-1
+"
+              >
+                View your latest updates and alerts
+              </p>
+
+              {unreadNotificationsCount > 0 ? (
+                <span
+                  className="
+absolute
+top-5
+right-5
+flex
+items-center
+justify-center
+min-w-6
+h-6
+px-2
+rounded-full
+bg-red-600
+text-xs
+font-semibold
+text-white
+"
+                >
+                  {unreadNotificationsCount}
+                </span>
+              ) : null}
+            </Link>
         </div>
       </div>
     </section>

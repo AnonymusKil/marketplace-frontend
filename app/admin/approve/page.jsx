@@ -14,6 +14,7 @@ export default function AdminApprove() {
       status: "pending",
     },
   });
+  
 
   const handleApproveSeller = async ({ storeId, status }) => {
     try {
