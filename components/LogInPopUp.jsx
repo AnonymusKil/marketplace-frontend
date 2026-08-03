@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useMutation } from "@apollo/client/react";
 import { LOGIN } from "../src/graphql/mutations/auth";
 import { SIGNUP } from "../src/graphql/mutations/auth";
-import {socket} from "../lib/socket"
+import { socket } from "../lib/socket";
 
 import Image from "next/image";
 import toast from "react-hot-toast";
@@ -31,7 +31,7 @@ function LogInPopUp({ setShowLogin }) {
       console.log("Login successful:", data);
       socket.auth = {
         userId: data.login.user.id,
-      }
+      };
       socket.connect();
       localStorage.setItem("token", data.login.token);
       toast.success("Logged in successfully!", { id: "auth" });
@@ -54,13 +54,15 @@ function LogInPopUp({ setShowLogin }) {
           password,
         },
       });
+      socket.connect();
+ 
       console.log("Sign-up successful:", data);
-      localStorage.setItem("token", data.signUp.token);
+      localStorage.setItem("token", data.register.token);
       toast.success("Account created successfully!", { id: "auth" });
       window.location.reload();
       setShowLogin(false);
     } catch (error) {
-      toast.error( error?.message || "Signup failed", { id: "auth", } );
+      toast.error(error?.message || "Signup failed", { id: "auth" });
     }
   };
 
@@ -113,11 +115,15 @@ function LogInPopUp({ setShowLogin }) {
 
         {/* Button */}
         <button
-        disabled={isLoading}
+          disabled={isLoading}
           onClick={currentState === "sign up" ? handleSignUp : handleLogin}
           className="bg-orange-500 text-white p-2 rounded cursor-pointer text-[15px] hover:bg-orange-600 transition disabled:opacity-50"
         >
-          { isLoading ? "Please wait..." : currentState === "sign up" ? "create Account" : "Login" }
+          {isLoading
+            ? "Please wait..."
+            : currentState === "sign up"
+              ? "create Account"
+              : "Login"}
         </button>
 
         {/* Terms */}
